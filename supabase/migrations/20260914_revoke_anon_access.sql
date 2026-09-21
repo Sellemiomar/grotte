@@ -47,10 +47,14 @@ DROP POLICY IF EXISTS "Allow anon write pos_voids" ON public.pos_voids;
 -- 2. DROP ALL ANON POLICIES FROM 20260913_purchase_orders.sql
 
 -- purchase_orders
+DROP POLICY IF EXISTS "Allow read purchase_orders" ON public.purchase_orders;
+DROP POLICY IF EXISTS "Allow manage purchase_orders" ON public.purchase_orders;
 DROP POLICY IF EXISTS "Allow anon read purchase_orders" ON public.purchase_orders;
 DROP POLICY IF EXISTS "Allow anon write purchase_orders" ON public.purchase_orders;
 
 -- purchase_order_items
+DROP POLICY IF EXISTS "Allow read purchase_order_items" ON public.purchase_order_items;
+DROP POLICY IF EXISTS "Allow manage purchase_order_items" ON public.purchase_order_items;
 DROP POLICY IF EXISTS "Allow anon read purchase_order_items" ON public.purchase_order_items;
 DROP POLICY IF EXISTS "Allow anon write purchase_order_items" ON public.purchase_order_items;
 
