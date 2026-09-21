@@ -1,0 +1,10 @@
+{
+  "name": "La Grotte Stock Tracking System",
+  "description": "Food and beverage inventory, bill of materials recipes, POS sales import, and food waste variance tracking system for La Grotte.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

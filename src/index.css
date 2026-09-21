@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  /* Requested core design tokens */
+  --color-navy: #0E2A38;
+  --color-navy-deep: #091D27;
+  --color-navy-mid: #133749;
+  --color-terracotta: #C67D3B;
+  --color-terracotta-hover: #b06c30;
+  --color-cream: #F7F5F0;
+  --color-sand: #E4DCD3;
+  --color-linen: #EFECE6;
+  --color-alert: #BE2525;
+  --color-success: #2D6A4F;
+  --color-focus-ring: #C67D3B;
+
+  /* Aliases for semantic consistency */
+  --color-marine: #0E2A38;
+  --color-marine-deep: #091D27;
+  --color-marine-dark: #133749;
+  --color-stone: #E4DCD3;
+  --color-stone-dark: #D8CEBE;
+  --color-crimson: #BE2525;
+  --color-ochre: #C67D3B;
+  --color-sage: #2D6A4F;
+}
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: #0E2A38;
+    background-color: #F7F5F0;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Ensure numbers align properly in data tables and currency */
+  .font-mono, .tabular-nums {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Custom fine scrollbar matching Ribat Stone & Grotte Marine */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F7F5F0;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8CEBE;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B6A795;
+}
