@@ -244,12 +244,20 @@ export const IngredientsManager: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-sand/60">
-              {filtered.map(ing => {
-                const stockVal = ing.current_stock * ing.cost_per_unit;
-                const isLow = ing.min_alert_threshold !== undefined && ing.current_stock <= ing.min_alert_threshold;
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-slate-500">
+                    <p className="font-bold text-navy text-sm">Aucun ingrédient trouvé pour cette recherche.</p>
+                    <p className="text-xs text-slate-400 mt-1">Ajoutez un nouvel ingrédient ou modifiez vos critères de filtre.</p>
+                  </td>
+                </tr>
+              ) : (
+                filtered.map(ing => {
+                  const stockVal = ing.current_stock * ing.cost_per_unit;
+                  const isLow = ing.min_alert_threshold !== undefined && ing.current_stock <= ing.min_alert_threshold;
 
-                return (
-                  <tr key={ing.id} className="hover:bg-cream/60 transition-colors">
+                  return (
+                    <tr key={ing.id} className="hover:bg-cream/60 transition-colors">
                     {/* Name */}
                     <td className="py-3.5 px-4">
                       <div className="font-bold text-navy text-sm">
@@ -332,8 +340,9 @@ export const IngredientsManager: React.FC = () => {
                     </td>
                   </tr>
                 );
-              })}
-            </tbody>
+              })
+            )}
+          </tbody>
           </table>
         </div>
       </div>

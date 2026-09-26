@@ -138,10 +138,10 @@ export const RecipeManager: React.FC = () => {
           </div>
           <div>
             <h2 className="text-base font-bold text-navy uppercase tracking-wide">
-              Fiches Techniques & Recettes (BOM - Déstockage Théorique)
+              Fiches Techniques & Recettes (Déstockage Théorique)
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Configuration des grammages par portion pour calculer la consommation théorique à chaque ticket caisse POS.
+              Configuration des grammages par portion pour calculer la consommation théorique à chaque encaissement.
             </p>
           </div>
         </div>

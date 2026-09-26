@@ -375,67 +375,76 @@ export const PosVoidsManager: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-sand/60">
-              {filteredVoids.map(item => {
-                const staffName = getVoidStaffName(item);
-                const itemName = getVoidItemName(item);
-                const timeStr = getVoidTimestamp(item);
-                const staffMember = staff.find(s => s && (s.name === staffName || s.id === item.staff_id));
-                const isHighValue = item.amount >= 20;
+              {filteredVoids.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-500">
+                    <p className="font-bold text-navy text-sm">Aucune annulation ou remise enregistrée pour ces critères.</p>
+                    <p className="text-xs text-slate-400 mt-1">Toutes les transactions de caisse sont conformes.</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredVoids.map(item => {
+                  const staffName = getVoidStaffName(item);
+                  const itemName = getVoidItemName(item);
+                  const timeStr = getVoidTimestamp(item);
+                  const staffMember = staff.find(s => s && (s.name === staffName || s.id === item.staff_id));
+                  const isHighValue = item.amount >= 20;
 
-                return (
-                  <tr key={item.id} className="hover:bg-cream/60 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-navy tabular-nums whitespace-nowrap">
-                      {timeStr || 'Non daté'}
-                    </td>
-                    <td className="py-3 px-3">
-                      <div className="font-bold text-navy">{itemName}</div>
-                    </td>
-                    <td className="py-3 px-3 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-lg bg-navy text-terracotta flex items-center justify-center font-bold text-[10px]">
-                          {staffName.charAt(0)}
-                        </span>
-                        <div>
-                          <div className="font-bold text-navy">{staffName}</div>
-                          <div className="text-[10px] text-slate-500">{staffMember?.role || 'Équipe'}</div>
+                  return (
+                    <tr key={item.id} className="hover:bg-cream/60 transition-colors">
+                      <td className="py-3 px-4 font-mono font-bold text-navy tabular-nums whitespace-nowrap">
+                        {timeStr || 'Non daté'}
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="font-bold text-navy">{itemName}</div>
+                      </td>
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-lg bg-navy text-terracotta flex items-center justify-center font-bold text-[10px]">
+                            {staffName.charAt(0)}
+                          </span>
+                          <div>
+                            <div className="font-bold text-navy">{staffName}</div>
+                            <div className="text-[10px] text-slate-500">{staffMember?.role || 'Équipe'}</div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        item.type === 'void' 
-                          ? 'bg-alert/10 text-alert border border-alert/25' 
-                          : item.type === 'comp'
-                          ? 'bg-terracotta/10 text-terracotta border border-terracotta/25'
-                          : 'bg-cream text-slate-700 border border-sand'
-                      }`}>
-                        {item.type === 'void' ? 'Annulation' : item.type === 'comp' ? 'Offert' : 'Remise'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-navy tabular-nums whitespace-nowrap">
-                      <span className={isHighValue ? 'text-alert' : ''}>
-                        {formatCurrency(item.amount)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-slate-600 text-[11px]">
-                      {item.reason}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => {
-                          if (confirm('Supprimer cette entrée ?')) {
-                            deletePosVoid(item.id);
-                          }
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-alert rounded-lg transition-colors"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+                      </td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          item.type === 'void' 
+                            ? 'bg-alert/10 text-alert border border-alert/25' 
+                            : item.type === 'comp'
+                            ? 'bg-terracotta/10 text-terracotta border border-terracotta/25'
+                            : 'bg-cream text-slate-700 border border-sand'
+                        }`}>
+                          {item.type === 'void' ? 'Annulation' : item.type === 'comp' ? 'Offert' : 'Remise'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono font-bold text-navy tabular-nums whitespace-nowrap">
+                        <span className={isHighValue ? 'text-alert' : ''}>
+                          {formatCurrency(item.amount)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-slate-600 text-[11px]">
+                        {item.reason}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <button
+                          onClick={() => {
+                            if (confirm('Supprimer cette entrée ?')) {
+                              deletePosVoid(item.id);
+                            }
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-alert rounded-lg transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

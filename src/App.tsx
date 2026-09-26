@@ -2,9 +2,12 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { StockProvider, useStock } from './context/StockContext';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
-import { X, ShieldAlert, Database, Loader2, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
+import { X, ShieldAlert, Loader2, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 // Lazy-loaded Tab Views
+const OverviewDashboard = lazy(() =>
+  import('./components/OverviewDashboard').then(m => ({ default: m.OverviewDashboard }))
+);
 const VarianceDashboard = lazy(() =>
   import('./components/VarianceDashboard').then(m => ({ default: m.VarianceDashboard }))
 );
@@ -35,6 +38,12 @@ const StaffManager = lazy(() =>
 const PurchaseOrdersManager = lazy(() =>
   import('./components/PurchaseOrdersManager').then(m => ({ default: m.PurchaseOrdersManager }))
 );
+const ReportsView = lazy(() =>
+  import('./components/ReportsView').then(m => ({ default: m.ReportsView }))
+);
+const SettingsView = lazy(() =>
+  import('./components/SettingsView').then(m => ({ default: m.SettingsView }))
+);
 
 // Lazy-loaded Modals
 const SalesImportModal = lazy(() =>
@@ -46,20 +55,23 @@ const AuthModal = lazy(() =>
 const WasteLogModal = lazy(() =>
   import('./components/WasteLogModal').then(m => ({ default: m.WasteLogModal }))
 );
+const LossInvestigationModal = lazy(() =>
+  import('./components/LossInvestigationModal').then(m => ({ default: m.LossInvestigationModal }))
+);
 
 import { ModuleSkeletonView } from './components/SkeletonLoader';
 
-// Branded loading state with modern skeleton layout matching La Grotte aesthetic
+// Branded loading state matching La Grotte aesthetic
 const TabLoadingFallback: React.FC = () => (
   <div className="space-y-6">
     <div className="flex items-center justify-between pb-2 border-b border-sand/40">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 rounded-full border-2 border-sand border-t-terracotta animate-spin" />
         <span className="text-xs font-bold uppercase tracking-widest text-terracotta">
-          La Grotte • Monastir — Chargement du module
+          La Grotte • Monastir — Chargement des données
         </span>
       </div>
-      <span className="text-[11px] font-mono text-slate-400">Préparation des données...</span>
+      <span className="text-[11px] font-mono text-slate-400">Actualisation en cours...</span>
     </div>
     <ModuleSkeletonView />
   </div>
@@ -90,17 +102,17 @@ function AppContent() {
     isSyncing, 
     error, 
     isError,
-    isSupabaseConnected, 
     toastMessage, 
     clearToast 
   } = useStock();
-  const [activeTab, setActiveTab] = useState<string>('variance');
+  const [activeTab, setActiveTab] = useState<string>('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFastCountModalOpen, setIsFastCountModalOpen] = useState(false);
   const [isSalesImportModalOpen, setIsSalesImportModalOpen] = useState(false);
   const [isNewDeliveryModalOpen, setIsNewDeliveryModalOpen] = useState(false);
   const [isWasteLogModalOpen, setIsWasteLogModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [investigatingIngredientId, setInvestigatingIngredientId] = useState<string | null>(null);
 
   // Enforce role-based access to tabs
   const userRole = currentUser?.role || 'owner';
@@ -133,14 +145,13 @@ function AppContent() {
       if (errorCode === 'otp_expired' || errorDesc?.includes('expired') || errorDesc?.includes('invalid')) {
         setIsAuthModalOpen(true);
       }
-      // Clean up URL hash so error doesn't remain in browser address bar
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
   }, []);
 
   return (
     <div className="min-h-screen bg-cream font-sans text-navy flex">
-      {/* Navigation Sidebar (Build.OS style) */}
+      {/* Navigation Sidebar (5-Section Operational Hierarchy) */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -168,12 +179,12 @@ function AppContent() {
         {/* View Components */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
-            {/* Supabase status banner if in demo mode or syncing */}
+            {/* Syncing status */}
             {isSyncing && (
-              <div className="mb-4 bg-navy/5 border border-navy/15 text-navy px-4 py-2.5 rounded-xl flex items-center justify-between text-xs font-medium animate-pulse">
+              <div className="mb-4 bg-navy/5 border border-navy/15 text-navy px-4 py-2.5 rounded-xl flex items-center justify-between text-xs font-medium">
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin text-terracotta" />
-                  <span>Synchronisation PostgreSQL Supabase en cours...</span>
+                  <span>Synchronisation des données en temps réel...</span>
                 </div>
               </div>
             )}
@@ -183,7 +194,7 @@ function AppContent() {
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-alert shrink-0" />
                   <div>
-                    <strong className="font-bold">Alerte Réseau Backend : </strong>
+                    <strong className="font-bold">Avertissement : </strong>
                     <span>{error}</span>
                   </div>
                 </div>
@@ -198,7 +209,7 @@ function AppContent() {
                 <div>
                   <h3 className="font-bold text-navy text-base">Chargement des données La Grotte Monastir...</h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    Récupération sécurisée des stocks, fiches techniques BOM, livraisons et variances.
+                    Récupération des stocks, fiches techniques, livraisons et calculs de variance.
                   </p>
                 </div>
                 <div className="pt-2">
@@ -235,6 +246,15 @@ function AppContent() {
               </div>
             ) : (
               <Suspense fallback={<TabLoadingFallback />}>
+                {activeTab === 'overview' && (
+                  <OverviewDashboard
+                    onSelectTab={setActiveTab}
+                    onOpenInvestigation={(id) => setInvestigatingIngredientId(id)}
+                    onOpenFastCount={() => setIsFastCountModalOpen(true)}
+                    onOpenWasteLog={() => setIsWasteLogModalOpen(true)}
+                    onOpenNewDelivery={() => setIsNewDeliveryModalOpen(true)}
+                  />
+                )}
                 {activeTab === 'variance' && <VarianceDashboard />}
                 {activeTab === 'counts' && <StockCountSheet />}
                 {activeTab === 'ingredients' && <IngredientsManager />}
@@ -243,10 +263,33 @@ function AppContent() {
                 {activeTab === 'sales' && (
                   <SalesManager onOpenImportModal={() => setIsSalesImportModalOpen(true)} />
                 )}
+                {activeTab === 'waste' && (
+                  <div className="bg-white rounded-2xl border border-sand p-6 shadow-xs space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-lg font-bold text-navy uppercase tracking-wider">
+                          Registre des Pertes & Freintes
+                        </h2>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Déclaration et suivi des coulages justifiés, avaries et casses en cuisine et au bar.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setIsWasteLogModalOpen(true)}
+                        className="px-4 py-2 bg-terracotta hover:bg-terracotta-hover text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-xs"
+                      >
+                        + Nouvelle Déclaration
+                      </button>
+                    </div>
+                    <ReportsView />
+                  </div>
+                )}
+                {activeTab === 'reports' && <ReportsView />}
                 {activeTab === 'access_logs' && <AccessLogManager />}
                 {activeTab === 'pos_voids' && <PosVoidsManager />}
                 {activeTab === 'staff' && <StaffManager />}
                 {activeTab === 'purchase_orders' && <PurchaseOrdersManager />}
+                {activeTab === 'settings' && <SettingsView />}
               </Suspense>
             )}
           </div>
@@ -256,19 +299,19 @@ function AppContent() {
         <footer className="border-t border-sand bg-white py-3.5 px-4 sm:px-8 text-xs text-slate-500">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-success"></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               <strong className="text-navy">La Grotte • Monastir</strong>
               <span className="text-sand">|</span>
-              <span>Système de contrôle matière, BOM & détection anti-coulage</span>
+              <span>Contrôle des stocks, consommations et pertes matières</span>
             </div>
-            <div className="text-[11px] text-slate-400 font-mono tracking-wider">
-              BOM ENGINE • POS SYNC • FOOD WASTE CONTROL
+            <div className="text-[11px] text-slate-400">
+              Système de gestion et surveillance des ratios restaurant
             </div>
           </div>
         </footer>
       </div>
 
-      {/* Fast Count Phone Modal */}
+      {/* Fast Count Modal */}
       {isFastCountModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4">
           <div className="bg-cream rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-sand flex flex-col">
@@ -278,7 +321,7 @@ function AppContent() {
                   Comptage Terrain
                 </span>
                 <h3 className="text-sm font-bold text-white">
-                  Saisie Rapide Téléphone — Inventaire Physique
+                  Saisie Rapide — Inventaire Physique par Shift
                 </h3>
               </div>
               <button
@@ -321,7 +364,7 @@ function AppContent() {
             <div className="p-4 bg-navy text-white flex items-center justify-between">
               <div>
                 <span className="font-bold text-xs uppercase tracking-wider text-terracotta block">
-                  Stock IN
+                  Stock Entrant
                 </span>
                 <h3 className="text-sm font-bold text-white">
                   Réception Marchandise Fournisseur (Bon de Livraison)
@@ -350,6 +393,16 @@ function AppContent() {
       {isWasteLogModalOpen && (
         <Suspense fallback={<ModalLoadingFallback label="Ouverture registre des pertes..." />}>
           <WasteLogModal onClose={() => setIsWasteLogModalOpen(false)} />
+        </Suspense>
+      )}
+
+      {/* Loss Investigation Modal */}
+      {investigatingIngredientId && (
+        <Suspense fallback={<ModalLoadingFallback label="Ouverture de l'enquête anti-coulage..." />}>
+          <LossInvestigationModal
+            ingredientId={investigatingIngredientId}
+            onClose={() => setInvestigatingIngredientId(null)}
+          />
         </Suspense>
       )}
 

@@ -349,7 +349,7 @@ export const LossInvestigationModal: React.FC<LossInvestigationModalProps> = ({
             )}
           </div>
 
-          {/* AI Audit Assistant (Gemini API) */}
+          {/* Audit Assistant */}
           <div className="bg-navy text-white p-5 rounded-2xl border border-sand/20 shadow-xs space-y-3">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
@@ -358,13 +358,13 @@ export const LossInvestigationModal: React.FC<LossInvestigationModalProps> = ({
                 </div>
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                    Diagnostic IA Anti-Coulage (Gemini)
-                    <span className="text-[10px] bg-white/10 text-terracotta px-2 py-0.5 rounded border border-terracotta/40">
-                      Modèle Flash
+                    Diagnostic d'Audit Anti-Coulage
+                    <span className="text-[10px] bg-white/10 text-sand px-2 py-0.5 rounded border border-white/20">
+                      Analyse de Corrélation
                     </span>
                   </h4>
                   <p className="text-[11px] text-slate-300 mt-0.5">
-                    Analyse prédictive croisant recettes BOM, tickets caisse, réceptions et accès réserve.
+                    Analyse des facteurs contributifs croisant fiches techniques, tickets caisse, livraisons et accès réserves.
                   </p>
                 </div>
               </div>
@@ -382,7 +382,7 @@ export const LossInvestigationModal: React.FC<LossInvestigationModalProps> = ({
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>{aiResult ? 'Ré-analyser' : 'Lancer Audit IA'}</span>
+                    <span>{aiResult ? 'Ré-analyser' : 'Lancer l\'Analyse'}</span>
                   </>
                 )}
               </button>
@@ -392,7 +392,7 @@ export const LossInvestigationModal: React.FC<LossInvestigationModalProps> = ({
               <div className="mt-3 pt-3 border-t border-white/10 space-y-3 text-xs">
                 <div className="bg-black/30 p-3.5 rounded-xl border border-white/10 text-slate-200 leading-relaxed">
                   <strong className="text-terracotta block mb-1 uppercase tracking-wider text-[10px]">
-                    Synthèse de l'Expertise IA :
+                    Synthèse de l'Analyse Matière :
                   </strong>
                   {aiResult.analysis}
                 </div>

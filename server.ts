@@ -38,7 +38,7 @@ if (serverSentryDsn) {
 }
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // Trust the reverse proxy layer (Nginx / Cloud Run) for accurate IP resolution
 app.set('trust proxy', 1);

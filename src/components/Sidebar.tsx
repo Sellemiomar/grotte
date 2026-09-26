@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { 
+  LayoutDashboard,
   TrendingDown, 
   ClipboardList, 
   Package, 
@@ -17,7 +18,11 @@ import {
   ShieldCheck,
   Building2,
   Trash2,
-  ShoppingCart
+  ShoppingCart,
+  FileSpreadsheet,
+  Sliders,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { useStock } from '../context/StockContext';
 import { formatCurrency } from '../utils/calculations';
@@ -47,6 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     lowStockItemsCount,
     accessLogs,
     posVoids,
+    wasteLogs,
     currentUser,
     switchStaffRole,
     resetToDemoData,
@@ -72,31 +78,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const navItems = [
-    {
-      id: 'variance',
-      label: 'Control Center (Variance)',
-      icon: TrendingDown,
-      badge: highLossItemsCount > 0 ? `${highLossItemsCount}` : null,
-      badgeColor: 'bg-alert/25 text-rose-200 border border-alert/40',
-    },
-    {
-      id: 'counts',
-      label: 'Inventaire Physique',
-      icon: ClipboardList,
-      badge: null,
-      badgeColor: '',
-    },
+  const userRole = currentUser?.role || 'owner';
+
+  // Section 1: Overview
+  const overviewItem = {
+    id: 'overview',
+    label: 'Tableau de Bord',
+    icon: LayoutDashboard,
+    badge: highLossItemsCount > 0 ? `${highLossItemsCount}` : null,
+    badgeColor: 'bg-alert/25 text-rose-200 border border-alert/40',
+  };
+
+  // Section 2: Stock
+  const stockItems = [
     {
       id: 'ingredients',
-      label: 'Catalogue & Stock Réel',
+      label: 'Catalogue & Stocks',
       icon: Package,
       badge: lowStockItemsCount > 0 ? `${lowStockItemsCount}` : null,
       badgeColor: 'bg-terracotta/25 text-sand border border-terracotta/40',
     },
     {
       id: 'deliveries',
-      label: 'Livraisons (Stock IN)',
+      label: 'Réceptions (Stock IN)',
       icon: Truck,
       badge: null,
       badgeColor: '',
@@ -109,22 +113,73 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: '',
     },
     {
-      id: 'recipes',
-      label: 'Fiches Recettes (BOM)',
-      icon: UtensilsCrossed,
+      id: 'counts',
+      label: 'Inventaire Physique',
+      icon: ClipboardList,
       badge: null,
       badgeColor: '',
     },
     {
+      id: 'recipes',
+      label: 'Fiches Techniques (BOM)',
+      icon: UtensilsCrossed,
+      badge: null,
+      badgeColor: '',
+    },
+  ];
+
+  // Section 3: Loss Control
+  const lossItems = [
+    {
+      id: 'variance',
+      label: 'Audit Écarts & Coulage',
+      icon: TrendingDown,
+      badge: highLossItemsCount > 0 ? `${highLossItemsCount}` : null,
+      badgeColor: 'bg-alert/25 text-rose-200 border border-alert/40',
+    },
+    {
+      id: 'waste',
+      label: 'Registre des Pertes',
+      icon: Trash2,
+      badge: wasteLogs.length > 0 ? `${wasteLogs.length}` : null,
+      badgeColor: 'bg-white/10 text-sand',
+    },
+    {
+      id: 'pos_voids',
+      label: 'Anomalies Caisse (POS)',
+      icon: Receipt,
+      badge: posVoids.length > 0 ? `${posVoids.length}` : null,
+      badgeColor: 'bg-alert/25 text-rose-200 border border-alert/40',
+    },
+    {
       id: 'sales',
-      label: 'Ventes Caisse (POS)',
+      label: 'Ventes Enregistrées',
       icon: UploadCloud,
       badge: null,
       badgeColor: '',
     },
   ];
 
-  const auditNavItems = [
+  // Section 4: Reports
+  const reportItems = [
+    {
+      id: 'reports',
+      label: 'Rapports Financiers',
+      icon: FileSpreadsheet,
+      badge: null,
+      badgeColor: '',
+    },
+  ];
+
+  // Section 5: Administration
+  const adminItems = [
+    {
+      id: 'staff',
+      label: 'Équipe & Habilitations',
+      icon: Users,
+      badge: null,
+      badgeColor: '',
+    },
     {
       id: 'access_logs',
       label: 'Accès Réserves & Badge',
@@ -133,42 +188,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-navy-mid text-sand',
     },
     {
-      id: 'pos_voids',
-      label: 'Annulations POS & Offerts',
-      icon: Receipt,
-      badge: posVoids.length > 0 ? `${posVoids.length}` : null,
-      badgeColor: 'bg-alert/25 text-rose-200 border border-alert/40',
-    },
-    {
-      id: 'staff',
-      label: 'Équipe & Responsabilités',
-      icon: Users,
+      id: 'settings',
+      label: 'Paramètres & Données',
+      icon: Sliders,
       badge: null,
       badgeColor: '',
     },
   ];
 
-  const userRole = currentUser?.role || 'owner';
-
-  const visibleNavItems = navItems.filter(item => {
+  // Role Filtering
+  const isItemVisible = (id: string) => {
     if (userRole === 'cook') {
-      return ['counts', 'recipes'].includes(item.id);
+      return ['counts', 'recipes'].includes(id);
     }
     if (userRole === 'server') {
-      return ['counts'].includes(item.id);
+      return ['counts', 'pos_voids'].includes(id);
     }
-    return true;
-  });
-
-  const visibleAuditNavItems = auditNavItems.filter(item => {
-    if (userRole === 'cook') {
-      return false;
-    }
-    if (userRole === 'server') {
-      return ['pos_voids'].includes(item.id);
-    }
-    return true;
-  });
+    return true; // owner & stock_manager see all
+  };
 
   const userInitials = (currentUser?.name || 'Omar Sellemi')
     .split(' ')
@@ -178,23 +215,67 @@ export const Sidebar: React.FC<SidebarProps> = ({
     .toUpperCase();
 
   const roleLabelMap: Record<string, string> = {
-    owner: 'Propriétaire (Owner)',
-    stock_manager: 'Responsable Stock',
-    cook: 'Chef / Cuisine',
-    server: 'Service / Salle',
+    owner: 'Direction (Owner)',
+    stock_manager: 'Responsable Matière',
+    cook: 'Chef de Cuisine',
+    server: 'Responsable Salle',
+  };
+
+  const renderNavGroup = (title: string, items: typeof stockItems) => {
+    const visible = items.filter(i => isItemVisible(i.id));
+    if (visible.length === 0) return null;
+
+    return (
+      <div className="pt-3">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-sand/50 px-3.5 block mb-1">
+          {title}
+        </span>
+        <div className="space-y-0.5">
+          {visible.map(item => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                id={`nav-${item.id}`}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (isOpenMobile) onCloseMobile();
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                  isActive
+                    ? 'bg-navy-mid text-white font-bold shadow-xs border border-white/15'
+                    : 'text-sand/80 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-terracotta' : 'text-sand/60'}`} />
+                  <span className="truncate">{item.label}</span>
+                </div>
+                {item.badge && (
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${item.badgeColor}`}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   const sidebarContent = (
     <div className="h-full flex flex-col justify-between select-none">
-      <div>
-        {/* Brand Header with Monastir Coastal & Ribat Identity */}
-        <div className="p-5 flex items-center justify-between border-b border-white/10">
+      <div className="overflow-y-auto flex-1">
+        {/* Brand Header */}
+        <div className="p-4 sm:p-5 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-terracotta rounded-xl flex items-center justify-center font-black text-white text-sm shadow-md tracking-wider">
               LG
             </div>
             <div>
-              <span className="text-base font-extrabold tracking-tight text-white uppercase block leading-none">
+              <span className="text-sm sm:text-base font-extrabold tracking-tight text-white uppercase block leading-none">
                 LA GROTTE
               </span>
               <span className="text-[10px] text-sand/70 font-semibold tracking-wider mt-1 block">
@@ -213,7 +294,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Quick Action: Relevé Express (Shift) & Déclarer Perte */}
+        {/* Quick Operational Shortcuts */}
         <div className="p-3 space-y-1.5">
           <button
             onClick={() => {
@@ -234,127 +315,68 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-sand font-semibold text-xs transition-colors border border-white/10"
             >
               <Trash2 className="w-3.5 h-3.5 text-rose-300" />
-              Déclarer Perte (Coulage)
+              Déclarer Perte / Casse
             </button>
           )}
         </div>
 
-        {/* Live Loss / Variance Indicator Pill */}
-        <div className="px-3 mb-2">
-          <div 
-            onClick={() => {
-              setActiveTab('variance');
-              if (isOpenMobile) onCloseMobile();
-            }}
-            className="p-3 rounded-xl bg-navy-deep border border-white/10 flex items-center justify-between cursor-pointer hover:border-terracotta/50 transition-colors"
-          >
-            <div>
-              <span className="text-[10px] font-bold text-sand/70 uppercase tracking-wider block">
-                Coulage Détecté
-              </span>
-              <span className="text-sm font-bold text-rose-400 font-mono tabular-nums">
-                +{formatCurrency(totalLossCost)}
-              </span>
-            </div>
-            <div className="w-2.5 h-2.5 rounded-full bg-alert animate-pulse"></div>
+        {/* Overview Direct Access */}
+        {isItemVisible('overview') && (
+          <div className="px-3 pt-1">
+            <button
+              id="nav-overview"
+              onClick={() => {
+                setActiveTab('overview');
+                if (isOpenMobile) onCloseMobile();
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-colors ${
+                activeTab === 'overview'
+                  ? 'bg-terracotta text-white shadow-xs'
+                  : 'text-sand hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <LayoutDashboard className="w-4 h-4 text-sand" />
+                <span>Tableau de Bord</span>
+              </div>
+              {highLossItemsCount > 0 && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-alert text-white">
+                  {highLossItemsCount}
+                </span>
+              )}
+            </button>
           </div>
-        </div>
+        )}
 
-        {/* Navigation Items */}
-        <nav className="px-3 space-y-1 mt-2">
-          {visibleNavItems.map(item => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-
-            return (
-              <button
-                key={item.id}
-                id={`nav-${item.id}`}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  if (isOpenMobile) onCloseMobile();
-                }}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors ${
-                  isActive
-                    ? 'bg-navy-mid text-white font-bold shadow-xs border border-white/15'
-                    : 'text-sand/80 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-terracotta' : 'text-sand/60'}`} />
-                  <span className="truncate">{item.label}</span>
-                </div>
-                {item.badge && (
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${item.badgeColor}`}>
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-
-          {/* Audit & Responsibility Section */}
-          {visibleAuditNavItems.length > 0 && (
-            <div className="pt-3 pb-1 px-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-sand/50 block">
-                Audit & Traçabilité
-              </span>
-            </div>
-          )}
-
-          {visibleAuditNavItems.map(item => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-
-            return (
-              <button
-                key={item.id}
-                id={`nav-${item.id}`}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  if (isOpenMobile) onCloseMobile();
-                }}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors ${
-                  isActive
-                    ? 'bg-navy-mid text-white font-bold shadow-xs border border-white/15'
-                    : 'text-sand/80 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-terracotta' : 'text-sand/60'}`} />
-                  <span className="truncate">{item.label}</span>
-                </div>
-                {item.badge && (
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${item.badgeColor}`}>
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        {/* Grouped Hierarchical Navigation */}
+        <nav className="px-3 pb-4">
+          {renderNavGroup('Stocks & Approvisionnements', stockItems)}
+          {renderNavGroup('Contrôle des Pertes', lossItems)}
+          {renderNavGroup('Rapports & États', reportItems)}
+          {renderNavGroup('Administration', adminItems)}
         </nav>
       </div>
 
       {/* Footer Profile & Utilities */}
-      <div className="p-4 border-t border-white/10 bg-navy-deep relative">
-        {/* Live database indicator */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] mb-3">
+      <div className="p-3.5 border-t border-white/10 bg-navy-deep relative shrink-0">
+        {/* Live sync indicator */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] mb-2.5">
           <div className={`w-2 h-2 rounded-full ${isSupabaseConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
           <span className="text-sand/90 font-medium truncate">
-            {isSupabaseConnected ? 'Base Supabase PostgreSQL Active' : 'Mode Local (Cache navigateur)'}
+            {isSupabaseConnected ? 'Synchronisation active' : 'Mode local'}
           </span>
         </div>
 
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-navy-mid flex items-center justify-center text-xs font-bold text-white border border-white/15 shrink-0">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-navy-mid flex items-center justify-center text-xs font-bold text-white border border-white/15 shrink-0">
               {userInitials}
             </div>
             <div className="min-w-0">
               <p className="text-xs font-bold text-white leading-tight truncate">
                 {currentUser?.name || 'Omar Sellemi'}
               </p>
-              <p className="text-[11px] text-terracotta font-medium truncate">
+              <p className="text-[10px] text-terracotta font-medium truncate">
                 {currentUser?.roleTitle || roleLabelMap[userRole]}
               </p>
             </div>
@@ -373,24 +395,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={() => setShowRoleSwitcher(prev => !prev)}
               className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/10 transition-colors"
-              title="Tester un autre rôle"
+              title="Changer de rôle"
             >
               Rôle
             </button>
           </div>
         </div>
 
-        {/* Quick Role Switcher Dropdown */}
+        {/* Role Switcher Dropdown */}
         {showRoleSwitcher && (
-          <div className="mb-3 p-2 bg-navy border border-white/15 rounded-xl space-y-1 text-xs text-sand shadow-xl">
+          <div className="mb-2 p-2 bg-navy border border-white/15 rounded-xl space-y-1 text-xs text-sand shadow-xl">
             <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-sand/60 border-b border-white/10">
-              Simulation de rôle (RBAC)
+              Habilitation Active
             </div>
             {[
-              { role: 'owner' as const, label: '👑 Propriétaire', sub: 'Accès total' },
-              { role: 'stock_manager' as const, label: '📦 Responsable Stock', sub: 'Gestion matière' },
-              { role: 'cook' as const, label: '👨‍🍳 Cuisine', sub: 'Inventaire & Recettes' },
-              { role: 'server' as const, label: '🍷 Salle / Service', sub: 'Inventaire & Voids' },
+              { role: 'owner' as const, label: '👑 Direction', sub: 'Accès total' },
+              { role: 'stock_manager' as const, label: '📦 Responsable Matière', sub: 'Gestion complète' },
+              { role: 'cook' as const, label: '👨‍🍳 Cuisine', sub: 'Inventaires & Recettes' },
+              { role: 'server' as const, label: '🍷 Salle & Bar', sub: 'Inventaires & Voids' },
             ].map(r => (
               <button
                 key={r.role}
@@ -412,15 +434,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-sand/70">
           <button
             onClick={() => setShowHelpModal(true)}
-            className="flex items-center gap-1 hover:text-white transition-colors"
+            className="flex items-center gap-1 hover:text-white transition-colors text-[11px]"
             title="Formule de calcul du coulage"
           >
             <HelpCircle className="w-3.5 h-3.5" />
-            <span>Aide</span>
+            <span>Formule</span>
           </button>
           <button
             onClick={handleExportBackup}
-            className="flex items-center gap-1 hover:text-white transition-colors"
+            className="flex items-center gap-1 hover:text-white transition-colors text-[11px]"
             title="Sauvegarde JSON"
           >
             <Download className="w-3.5 h-3.5" />
@@ -432,7 +454,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 resetToDemoData();
               }
             }}
-            className="flex items-center gap-1 hover:text-rose-300 transition-colors"
+            className="flex items-center gap-1 hover:text-rose-300 transition-colors text-[11px]"
             title="Réinitialiser Démo"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -449,7 +471,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Méthode de Calcul du Coulage — La Grotte Monastir
             </h3>
             <p className="text-xs text-slate-600 mb-4">
-              Ce système compare la consommation théorique (recettes × ventes POS) à la consommation réelle constatée lors des inventaires physiques.
+              Ce système compare la consommation théorique (recettes × ventes) à la consommation réelle constatée lors des inventaires physiques.
             </p>
 
             <div className="space-y-3 text-xs text-slate-800 bg-white p-4 rounded-xl border border-sand font-mono">
@@ -459,7 +481,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </p>
               <p>
                 <strong className="text-navy font-sans">2. Conso Théorique :</strong><br/>
-                Quantité vendue (POS) × Grammage recette (BOM)
+                Quantité vendue (Caisse) × Grammage recette (Fiche Technique)
               </p>
               <p>
                 <strong className="text-navy font-sans">3. Écart (Variance) :</strong><br/>

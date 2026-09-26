@@ -10,7 +10,8 @@ import {
   Trash2,
   Bell,
   AlertTriangle,
-  ChevronRight
+  ChevronRight,
+  ShoppingCart
 } from 'lucide-react';
 import { useStock } from '../context/StockContext';
 import { formatCurrency } from '../utils/calculations';
@@ -28,45 +29,61 @@ interface HeaderProps {
 }
 
 const TAB_TITLES: Record<string, { title: string; subtitle: string }> = {
+  overview: {
+    title: 'Tableau de Bord Général',
+    subtitle: 'RESTAURANT LA GROTTE MONASTIR • SYNTHÈSE DES FLUX & MATIÈRES',
+  },
   variance: {
-    title: 'Control Center : Audit de Variance & Coulage',
-    subtitle: 'RESTAURANT LA GROTTE MONASTIR • AUDIT MATIÈRE & SURVEILLANCE DES MARGES',
+    title: 'Audit des Écarts & Détection du Coulage',
+    subtitle: 'COMPARAISON THÉORIQUE VS RÉEL • SURVEILLANCE DU RATIO MATIÈRE',
   },
   counts: {
-    title: 'Inventaire Physique & Saisie des Comptages',
-    subtitle: 'CHAMBRES FROIDES, CAVE, BAR & ÉPICERIE • RELEVÉS TERRAIN PAR SHIFT',
+    title: 'Inventaire Physique & Relevés Terrain',
+    subtitle: 'CHAMBRES FROIDES, CAVE, BAR & ÉPICERIE • SAISIE PAR SHIFT',
   },
   ingredients: {
-    title: 'Catalogue des Ingrédients & Stock Réel',
-    subtitle: 'VALORISATION DÉTAILLÉE DU STOCK & SEUILS CRITIQUES DE RÉAPPROVISIONNEMENT',
+    title: 'Catalogue des Ingrédients & Stocks Réels',
+    subtitle: 'VALORISATION DÉTAILLÉE DU STOCK & SEUILS DE RÉAPPROVISIONNEMENT',
   },
   deliveries: {
     title: 'Réception des Livraisons Fournisseurs',
-    subtitle: 'BONS DE LIVRAISON (STOCK IN), CONTRÔLE CONFORME & MISE À JOUR DES PAMP',
+    subtitle: 'BONS DE LIVRAISON (STOCK ENTRANT) & CONTRÔLE DE CONFORMITÉ',
   },
   purchase_orders: {
-    title: 'Bons de Commande Fournisseurs (PO)',
-    subtitle: 'RÉAPPROVISIONNEMENT AUTOMATIQUE, SUGGESTIONS D\'ACHAT & CONVERSION EN BL',
+    title: 'Bons de Commande Fournisseurs',
+    subtitle: 'RÉAPPROVISIONNEMENT ET SUGGESTIONS D\'ACHAT AUTOMATIQUES',
   },
   recipes: {
-    title: 'Fiches Techniques & Recettes (BOM)',
-    subtitle: 'GRAMMAGES THÉORIQUES, COÛTS PORTION & RATIOS FOOD COST',
+    title: 'Fiches Techniques & Recettes',
+    subtitle: 'GRAMMAGES THÉORIQUES, COÛTS PORTION & COÛT MATIÈRE',
   },
   sales: {
-    title: 'Ventes Enregistrées par la Caisse (POS)',
-    subtitle: 'EXPORT TICKETS DE CAISSE POUR DÉSTOCKAGE THÉORIQUE RECETTE',
+    title: 'Ventes Enregistrées par la Caisse',
+    subtitle: 'DÉSTOCKAGE THÉORIQUE DES RECETTES SELON LES TICKETS DE CAISSE',
+  },
+  waste: {
+    title: 'Registre des Pertes & Freintes',
+    subtitle: 'DÉCLARATION DES COULAGES JUSTIFIÉS, AVARIES ET CASSES',
+  },
+  reports: {
+    title: 'Rapports Financiers & États de Gestion',
+    subtitle: 'BILANS MATIÈRES, VALORISATIONS ET HISTORIQUE D\'EXPLOITATION',
   },
   access_logs: {
     title: 'Registre des Accès Réserves & Chambres Froides',
-    subtitle: 'BADGEAGE ÉLECTRONIQUE • SURVEILLANCE HORAIRE & CORRÉLATIONS DE PERTE',
+    subtitle: 'BADGEAGE ÉLECTRONIQUE • SURVEILLANCE HORAIRE DES LOCAUX SÉCURISÉS',
   },
   pos_voids: {
-    title: 'Surveillance des Annulations & Remises POS',
-    subtitle: 'VOIDS, OFFERTS & REMISES CAISSE • ANALYSE CROISÉE DU COULAGE',
+    title: 'Surveillance des Annulations & Remises Caisse',
+    subtitle: 'ANNULATIONS, OFFERTS ET REMISES • ANALYSE CROISÉE DU COULAGE',
   },
   staff: {
-    title: 'Équipe & Chaîne de Responsabilités',
-    subtitle: 'HABILITATIONS RBAC, SIGNATAIRES BL, COMPTAGES & AUDITS',
+    title: 'Équipe & Habilitations Opérationnelles',
+    subtitle: 'RÔLES, SIGNATAIRES DES BONS DE LIVRAISON ET AUDITS',
+  },
+  settings: {
+    title: 'Paramètres d\'Exploitation & Données',
+    subtitle: 'SEUILS D\'ALERTE COULAGE, SAUVEGARDES ET EXPORTATIONS',
   },
 };
 
@@ -108,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="bg-cream border-b border-sand sticky top-0 z-30 px-4 sm:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <header className="bg-cream border-b border-sand sticky top-0 z-30 px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
       {/* Left: View title and breadcrumbs */}
       <div className="flex items-center gap-3">
         <button
@@ -132,35 +149,21 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right: Live status and quick actions */}
       <div className="flex items-center gap-2 sm:gap-3 flex-wrap ml-auto">
-        {/* Supabase connection status */}
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border bg-white border-sand">
-          {isSupabaseConnected ? (
-            isSupabaseAuthActive ? (
-              <>
-                <CloudCheck className="w-3.5 h-3.5 text-success" />
-                <span className="text-success text-[11px] font-bold">Cloud Sync (Auth)</span>
-              </>
-            ) : (
-              <button 
-                onClick={onOpenAuthModal} 
-                className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-                title="Connectez-vous pour activer la synchronisation Cloud RLS"
-              >
-                <CloudCheck className="w-3.5 h-3.5 text-terracotta" />
-                <span className="text-terracotta text-[11px] font-bold">Cloud (Local Mode)</span>
-              </button>
-            )
-          ) : (
-            <>
-              <Database className="w-3.5 h-3.5 text-terracotta" />
-              <span className="text-slate-600 text-[11px]">Local Sync</span>
-            </>
-          )}
+        {/* Connection status (No technical jargon) */}
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border bg-white border-sand">
+          <div className={`w-2 h-2 rounded-full ${isSupabaseConnected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+          <span className="text-slate-700 text-[11px]">
+            {isSupabaseConnected ? 'Données synchronisées' : 'Mode local'}
+          </span>
         </div>
 
         {/* Quick Loss Notice if any */}
         {totalLossCost > 0 && (
-          <div className="hidden md:flex items-center gap-1.5 bg-alert/10 text-alert px-3 py-1 rounded-full text-xs font-bold border border-alert/25">
+          <div 
+            onClick={() => onSelectTab && onSelectTab('variance')}
+            className="hidden md:flex items-center gap-1.5 bg-rose-50 text-alert px-3 py-1 rounded-full text-xs font-bold border border-rose-200 cursor-pointer hover:border-rose-300 transition-colors"
+            title="Cliquez pour voir le détail des pertes"
+          >
             <TrendingDown className="w-3.5 h-3.5 text-alert" />
             <span className="font-mono tabular-nums">+{formatCurrency(totalLossCost)}</span>
           </div>
@@ -176,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Bell className="w-4 h-4 text-slate-700" />
             {lowStockIngredients.length > 0 && (
-              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-terracotta text-white text-[10px] font-bold animate-pulse">
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-terracotta text-white text-[10px] font-bold">
                 {lowStockIngredients.length}
               </span>
             )}
@@ -210,7 +213,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <div>
                         <p className="font-bold text-navy">{ing.name}</p>
                         <p className="text-[11px] text-slate-500">
-                          Stock actuel : <span className="font-bold text-alert">{ing.current_stock} {ing.unit}</span> (Min : {ing.min_alert_threshold ?? 0} {ing.unit})
+                          Stock actuel : <span className="font-bold text-alert font-mono tabular-nums">{ing.current_stock} {ing.unit}</span> (Min : {ing.min_alert_threshold ?? 0} {ing.unit})
                         </p>
                       </div>
                       <button
@@ -237,7 +240,7 @@ export const Header: React.FC<HeaderProps> = ({
                     }}
                     className="w-full py-2 bg-navy hover:bg-navy-mid text-white rounded-xl text-xs font-bold transition-colors text-center"
                   >
-                    Générer Bons de Commande Automatiques
+                    Générer Bons de Commande
                   </button>
                 </div>
               )}
@@ -254,7 +257,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <span>{roleEmojiMap[currentUser.role] || '👤'}</span>
             <span className="font-bold truncate max-w-[120px]">{currentUser.name}</span>
-            <span className="text-[10px] text-slate-500 font-mono hidden md:inline">
+            <span className="text-[10px] text-slate-500 hidden md:inline">
               ({currentUser.roleTitle || currentUser.role})
             </span>
           </button>
@@ -263,7 +266,6 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onOpenAuthModal}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-navy hover:bg-navy-mid text-white transition-colors shadow-xs"
           >
-            <span>🔐</span>
             <span>Connexion</span>
           </button>
         )}
@@ -273,11 +275,11 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="btn-waste-log"
             onClick={onOpenWasteLog}
-            className="bg-alert/10 hover:bg-alert/20 text-alert border border-alert/25 px-3 py-2 rounded-xl text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-colors"
-            title="Déclarer un coulage / perte connue (Waste Log)"
+            className="bg-white hover:bg-linen text-rose-800 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-colors"
+            title="Déclarer une perte, casse ou coulage connu"
           >
             <Trash2 className="w-4 h-4 text-alert" />
-            <span className="hidden sm:inline">Déclarer Perte</span>
+            <span className="hidden sm:inline">Perte</span>
           </button>
         )}
 
@@ -300,18 +302,6 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Truck className="w-4 h-4 text-terracotta" />
             <span className="hidden sm:inline">Livraison</span>
-          </button>
-        )}
-
-        {isManagerOrOwner && (
-          <button
-            id="btn-import-sales"
-            onClick={onOpenSalesImport}
-            className="bg-white hover:bg-linen text-navy border border-sand px-3 py-2 rounded-xl text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-colors"
-            title="Importer export caisse POS"
-          >
-            <UploadCloud className="w-4 h-4 text-terracotta" />
-            <span className="hidden sm:inline">Ventes POS</span>
           </button>
         )}
       </div>

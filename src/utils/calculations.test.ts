@@ -713,4 +713,68 @@ describe('calculations.ts — Test Suite for La Grotte Food Cost & Variance Engi
       expect(orders).toEqual([]);
     });
   });
+
+  describe('Edge-case Financial Integrity & Formatting', () => {
+    it('accurately calculates net unexplained loss when known waste logs exist', () => {
+      const ingredient: Ingredient = {
+        id: 'ing-loup',
+        name: 'Filet de Loup de Mer',
+        unit: 'kg',
+        category: 'seafood',
+        cost_per_unit: 38.0,
+        current_stock: 5.0,
+      };
+
+      const waste: WasteLog[] = [
+        {
+          id: 'w-1',
+          ingredient_id: 'ing-loup',
+          quantity: 0.5,
+          unit_cost_at_time: 38.0,
+          reason: 'spoilage',
+          logged_by: 'Chef Marc',
+          date: '2026-09-03',
+          shift: 'morning',
+        },
+      ];
+
+      const knownWasteCost = calculateKnownWaste('ing-loup', waste, '2026-09-01', '2026-09-07');
+      expect(knownWasteCost).toBe(19.0); // 0.5kg * 38 DT = 19.0 DT
+    });
+
+    it('handles zero theoretical usage with positive actual usage cleanly', () => {
+      // Ingredient was consumed (e.g. 2kg) but 0 sales were rung up on POS (100% loss/theft)
+      const reports = generateVarianceReport(
+        [
+          {
+            id: 'ing-boukha',
+            name: 'Boukha Bokobsa Prestige',
+            unit: 'L',
+            category: 'alcohol',
+            cost_per_unit: 45.0,
+            current_stock: 8.0,
+          },
+        ],
+        [],
+        [],
+        [],
+        [
+          { id: 'c-1', ingredient_id: 'ing-boukha', counted_quantity: 10.0, date: '2026-09-01', shift: 'morning', counted_by: 'stf-1' },
+          { id: 'c-2', ingredient_id: 'ing-boukha', counted_quantity: 8.0, date: '2026-09-07', shift: 'evening', counted_by: 'stf-1' },
+        ],
+        [], // 0 sales
+        '2026-09-01',
+        '2026-09-07',
+        []
+      );
+
+      expect(reports).toHaveLength(1);
+      expect(reports[0].actual_usage).toBe(2.0); // 10.0 - 8.0 = 2.0L
+      expect(reports[0].theoretical_usage).toBe(0.0);
+      expect(reports[0].variance_quantity).toBe(2.0);
+      expect(reports[0].variance_cost).toBe(90.0); // 2.0 * 45 DT
+      expect(reports[0].variance_percentage).toBe(100);
+      expect(reports[0].status).toBe('critical_loss');
+    });
+  });
 });

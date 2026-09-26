@@ -160,7 +160,7 @@ export const StaffManager: React.FC = () => {
         <div className="bg-white rounded-xl border border-sand p-5 shadow-md">
           <h3 className="text-xs font-bold text-navy uppercase tracking-wider mb-4 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-terracotta" />
-            Nouveau collaborateur & Accès Supabase Auth
+            Nouveau collaborateur & Habilitations d'Accès
           </h3>
 
           {formError && (
@@ -231,7 +231,7 @@ export const StaffManager: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div>
                 <label className="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">
-                  Mot de passe (Supabase Auth - min. 8 caractères)
+                  Mot de passe de session (min. 8 caractères)
                 </label>
                 <input
                   type="password"
@@ -242,7 +242,7 @@ export const StaffManager: React.FC = () => {
                   className="w-full bg-cream border border-sand rounded-lg px-3 py-2 text-xs text-navy focus:outline-none focus:ring-1 focus:ring-navy"
                 />
                 <p className="text-[10px] text-slate-400 mt-1">
-                  Requis si un email est spécifié pour créer un compte authentifié Supabase.
+                  Requis si un email est spécifié pour créer un compte d'accès sécurisé.
                 </p>
               </div>
 

@@ -277,56 +277,65 @@ export const DeliveriesManager: React.FC<DeliveriesManagerProps> = ({ onClose, i
               </tr>
             </thead>
             <tbody className="divide-y divide-sand/60">
-              {[...deliveries].reverse().map(del => {
-                const ing = ingredients.find(i => i.id === del.ingredient_id);
-                const sup = suppliers.find(s => s.id === del.supplier_id);
-                const total = del.quantity * del.unit_cost;
+              {deliveries.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-slate-500">
+                    <p className="font-bold text-navy text-sm">Aucune livraison enregistrée pour le moment.</p>
+                    <p className="text-xs text-slate-400 mt-1">Enregistrez votre première réception pour commencer à suivre les entrées de stock.</p>
+                  </td>
+                </tr>
+              ) : (
+                [...deliveries].reverse().map(del => {
+                  const ing = ingredients.find(i => i.id === del.ingredient_id);
+                  const sup = suppliers.find(s => s.id === del.supplier_id);
+                  const total = del.quantity * del.unit_cost;
 
-                return (
-                  <tr key={del.id} className="hover:bg-cream/60 transition-colors">
-                    <td className="py-3 px-4 font-mono text-slate-500 tabular-nums">
-                      {del.date}
-                    </td>
-                    <td className="py-3 px-3 font-bold text-navy">
-                      {ing?.name || 'Inconnu'}
-                    </td>
-                    <td className="py-3 px-3 text-slate-600">
-                      {sup?.name || 'Fournisseur direct'}
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-success tabular-nums">
-                      +{formatQuantity(del.quantity, ing?.unit || '')}
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-600 tabular-nums">
-                      {formatCurrency(del.unit_cost)}
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-navy tabular-nums">
-                      {formatCurrency(total)}
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="inline-flex items-center gap-1 bg-cream text-slate-700 font-medium px-2 py-0.5 rounded-md text-[11px] border border-sand">
-                        <User className="w-3 h-3 text-slate-400" />
-                        {del.received_by || 'Non signé'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-slate-500 italic text-[11px]">
-                      {del.notes || '-'}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => {
-                          if (confirm('Supprimer cette réception ?')) {
-                            deleteDelivery(del.id);
-                          }
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-alert rounded-lg transition-colors"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+                  return (
+                    <tr key={del.id} className="hover:bg-cream/60 transition-colors">
+                      <td className="py-3 px-4 font-mono text-slate-500 tabular-nums">
+                        {del.date}
+                      </td>
+                      <td className="py-3 px-3 font-bold text-navy">
+                        {ing?.name || 'Inconnu'}
+                      </td>
+                      <td className="py-3 px-3 text-slate-600">
+                        {sup?.name || 'Fournisseur direct'}
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono font-bold text-success tabular-nums">
+                        +{formatQuantity(del.quantity, ing?.unit || '')}
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono text-slate-600 tabular-nums">
+                        {formatCurrency(del.unit_cost)}
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono font-bold text-navy tabular-nums">
+                        {formatCurrency(total)}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="inline-flex items-center gap-1 bg-cream text-slate-700 font-medium px-2 py-0.5 rounded-md text-[11px] border border-sand">
+                          <User className="w-3 h-3 text-slate-400" />
+                          {del.received_by || 'Non signé'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-slate-500 italic text-[11px]">
+                        {del.notes || '-'}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <button
+                          onClick={() => {
+                            if (confirm('Supprimer cette réception ?')) {
+                              deleteDelivery(del.id);
+                            }
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-alert rounded-lg transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
