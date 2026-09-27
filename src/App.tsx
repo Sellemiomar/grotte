@@ -44,6 +44,9 @@ const ReportsView = lazy(() =>
 const SettingsView = lazy(() =>
   import('./components/SettingsView').then(m => ({ default: m.SettingsView }))
 );
+const WasteRegisterView = lazy(() =>
+  import('./components/WasteRegisterView').then(m => ({ default: m.WasteRegisterView }))
+);
 
 // Lazy-loaded Modals
 const SalesImportModal = lazy(() =>
@@ -60,6 +63,7 @@ const LossInvestigationModal = lazy(() =>
 );
 
 import { ModuleSkeletonView } from './components/SkeletonLoader';
+import { LoginScreen } from './components/LoginScreen';
 
 // Branded loading state matching La Grotte aesthetic
 const TabLoadingFallback: React.FC = () => (
@@ -102,6 +106,7 @@ function AppContent() {
     isSyncing, 
     error, 
     isError,
+    isAuthChecking,
     toastMessage, 
     clearToast 
   } = useStock();
@@ -118,8 +123,9 @@ function AppContent() {
   const userRole = currentUser?.role || 'owner';
 
   const isTabAllowed = (tab: string): boolean => {
+    if (!currentUser) return false;
     if (userRole === 'cook') {
-      return ['counts', 'recipes'].includes(tab);
+      return ['counts', 'recipes', 'waste'].includes(tab);
     }
     if (userRole === 'server') {
       return ['counts', 'pos_voids'].includes(tab);
@@ -128,10 +134,10 @@ function AppContent() {
   };
 
   useEffect(() => {
-    if (!isTabAllowed(activeTab)) {
+    if (currentUser && !isTabAllowed(activeTab)) {
       setActiveTab('counts');
     }
-  }, [userRole, activeTab]);
+  }, [userRole, activeTab, currentUser]);
 
   // Handle URL hash fragments (e.g. Supabase email confirmation redirect or expired links)
   useEffect(() => {
@@ -148,6 +154,65 @@ function AppContent() {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
   }, []);
+
+  // 1. Loading Session Gate
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-sand/30 font-sans text-navy flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-sand flex flex-col items-center text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-navy text-terracotta flex items-center justify-center shadow-xs">
+            <Loader2 className="w-6 h-6 animate-spin text-terracotta" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-terracotta">
+            La Grotte • Monastir
+          </span>
+          <h3 className="font-bold text-navy text-sm">Vérification de la session...</h3>
+          <p className="text-xs text-slate-500">
+            Contrôle des autorisations d'accès au système restaurant
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated Gate — Absolute Gate: No operational data rendered
+  if (!currentUser) {
+    return (
+      <>
+        <LoginScreen />
+        {toastMessage && (
+          <div className="fixed bottom-5 right-5 z-50 max-w-sm w-full animate-bounce-short">
+            <div
+              className={`p-3.5 rounded-xl shadow-xl border flex items-start gap-3 text-xs ${
+                toastMessage.type === 'success'
+                  ? 'bg-emerald-950/95 border-emerald-700/80 text-emerald-100'
+                  : toastMessage.type === 'error'
+                  ? 'bg-rose-950/95 border-rose-700/80 text-rose-100'
+                  : 'bg-slate-900/95 border-slate-700 text-white'
+              }`}
+            >
+              {toastMessage.type === 'success' && (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              )}
+              {toastMessage.type === 'error' && (
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              )}
+              {toastMessage.type === 'info' && (
+                <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+              )}
+              <div className="flex-1 font-medium leading-relaxed">{toastMessage.text}</div>
+              <button
+                onClick={clearToast}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cream font-sans text-navy flex">
@@ -264,25 +329,7 @@ function AppContent() {
                   <SalesManager onOpenImportModal={() => setIsSalesImportModalOpen(true)} />
                 )}
                 {activeTab === 'waste' && (
-                  <div className="bg-white rounded-2xl border border-sand p-6 shadow-xs space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-lg font-bold text-navy uppercase tracking-wider">
-                          Registre des Pertes & Freintes
-                        </h2>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Déclaration et suivi des coulages justifiés, avaries et casses en cuisine et au bar.
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => setIsWasteLogModalOpen(true)}
-                        className="px-4 py-2 bg-terracotta hover:bg-terracotta-hover text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-xs"
-                      >
-                        + Nouvelle Déclaration
-                      </button>
-                    </div>
-                    <ReportsView />
-                  </div>
+                  <WasteRegisterView onOpenNewWaste={() => setIsWasteLogModalOpen(true)} />
                 )}
                 {activeTab === 'reports' && <ReportsView />}
                 {activeTab === 'access_logs' && <AccessLogManager />}

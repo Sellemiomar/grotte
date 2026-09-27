@@ -471,24 +471,24 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
             </div>
 
             {/* Tactile adjustment keys for cold room counting with gloves */}
-            <div className="flex items-center justify-between gap-2 pt-1">
-              <div className="flex items-center gap-1.5 flex-1">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1">
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
                 <button
                   type="button"
                   onClick={() => setTempCount(prev => Math.max(0, Number((prev - 1).toFixed(2))))}
-                  className="px-3 py-2 bg-white hover:bg-linen border border-sand rounded-xl text-xs font-black text-navy shadow-2xs active:scale-95"
+                  className="px-2.5 sm:px-3 py-2 bg-white hover:bg-linen border border-sand rounded-xl text-xs font-black text-navy shadow-2xs active:scale-95 shrink-0"
                 >
                   -1
                 </button>
                 <button
                   type="button"
                   onClick={() => setTempCount(prev => Math.max(0, Number((prev - 0.5).toFixed(2))))}
-                  className="px-2.5 py-2 bg-white hover:bg-linen border border-sand rounded-xl text-xs font-bold text-slate-700 shadow-2xs active:scale-95"
+                  className="px-2 sm:px-2.5 py-2 bg-white hover:bg-linen border border-sand rounded-xl text-xs font-bold text-slate-700 shadow-2xs active:scale-95 shrink-0"
                 >
                   -0.5
                 </button>
 
-                <div className="relative flex-1 min-w-[70px]">
+                <div className="relative flex-1 min-w-[54px]">
                   <input
                     type="number"
                     step="any"
@@ -502,21 +502,21 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setTempCount(prev => Number((prev + 0.5).toFixed(2)))}
-                  className="px-2.5 py-2 bg-white hover:bg-linen border border-sand rounded-xl text-xs font-bold text-slate-700 shadow-2xs active:scale-95"
+                  className="px-2 sm:px-2.5 py-2 bg-white hover:bg-linen border border-sand rounded-xl text-xs font-bold text-slate-700 shadow-2xs active:scale-95 shrink-0"
                 >
                   +0.5
                 </button>
                 <button
                   type="button"
                   onClick={() => setTempCount(prev => Number((prev + 1).toFixed(2)))}
-                  className="px-3 py-2 bg-white hover:bg-linen border border-sand rounded-xl text-xs font-black text-navy shadow-2xs active:scale-95"
+                  className="px-2.5 sm:px-3 py-2 bg-white hover:bg-linen border border-sand rounded-xl text-xs font-black text-navy shadow-2xs active:scale-95 shrink-0"
                 >
                   +1
                 </button>
                 <button
                   type="button"
                   onClick={() => setTempCount(prev => Number((prev + 5).toFixed(2)))}
-                  className="px-2.5 py-2 bg-white hover:bg-linen border border-sand rounded-xl text-xs font-bold text-terracotta shadow-2xs active:scale-95"
+                  className="px-2 sm:px-2.5 py-2 bg-white hover:bg-linen border border-sand rounded-xl text-xs font-bold text-terracotta shadow-2xs active:scale-95 shrink-0"
                   title="Ajouter un carton / pack de 5"
                 >
                   +5
@@ -526,7 +526,7 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmCount}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-terracotta hover:bg-terracotta/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-terracotta hover:bg-terracotta/90 text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 shrink-0"
               >
                 <Check className="w-4 h-4" />
                 Valider & Suivant

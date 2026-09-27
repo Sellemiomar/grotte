@@ -307,24 +307,35 @@ async function verifySupabaseAuth(req: express.Request, res: express.Response, n
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
   const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  if (supabaseUrl && supabaseAnonKey && token !== 'demo-bearer-token') {
-    try {
-      const supabaseServer = createClient(supabaseUrl, supabaseAnonKey);
-      const { data: { user }, error } = await supabaseServer.auth.getUser(token);
-      if (error || !user) {
+  if (supabaseUrl && supabaseAnonKey) {
+    if (token === 'demo-bearer-token' && isProduction) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Jeton démo interdit en environnement de production.',
+      });
+      return;
+    }
+
+    if (token !== 'demo-bearer-token') {
+      try {
+        const supabaseServer = createClient(supabaseUrl, supabaseAnonKey);
+        const { data: { user }, error } = await supabaseServer.auth.getUser(token);
+        if (error || !user) {
+          res.status(401).json({
+            error: 'Unauthorized',
+            message: 'Jeton d\'authentification Supabase invalide ou expiré.',
+          });
+          return;
+        }
+      } catch {
         res.status(401).json({
           error: 'Unauthorized',
-          message: 'Jeton d\'authentification Supabase invalide ou expiré.',
+          message: 'Échec de vérification du jeton.',
         });
         return;
       }
-    } catch {
-      res.status(401).json({
-        error: 'Unauthorized',
-        message: 'Échec de vérification du jeton.',
-      });
-      return;
     }
   }
 

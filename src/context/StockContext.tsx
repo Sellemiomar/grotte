@@ -121,6 +121,7 @@ interface StockContextType {
   signUpStaff: (data: { email: string; password?: string; name: string; role: StaffRole; roleTitle?: string }) => Promise<boolean>;
 
   // Auth / Role switcher
+  isAuthChecking: boolean;
   currentUser: Staff | null;
   setCurrentUser: (staff: Staff | null) => void;
   login: (email: string, password?: string) => Promise<boolean> | boolean;
@@ -138,6 +139,7 @@ interface StockContextType {
   // Waste logs (Pertes & Déclarations de coulages connus)
   wasteLogs: WasteLog[];
   addWasteLog: (data: Omit<WasteLog, 'id'>) => Promise<WasteLog>;
+  deleteWasteLog: (id: string) => Promise<void>;
   isWasteTableAvailable: boolean;
   syncWasteLogsToSupabase: () => Promise<boolean>;
   isSupabaseAuthActive: boolean;
@@ -241,8 +243,9 @@ export const StockProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [currentUser, setCurrentUser] = useState<Staff | null>(() => {
     const saved = loadFromStorage<Staff | null>('lagrotte_current_user_v2', null);
     if (saved && saved.id) return saved;
-    return INITIAL_STAFF.find(s => s.role === 'owner') || INITIAL_STAFF[0];
+    return null;
   });
+  const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
 
   const [accessLogs, setAccessLogs] = useState<AccessLog[]>(() =>
     loadFromStorage(STORAGE_KEYS.ACCESS_LOGS, INITIAL_ACCESS_LOGS)
@@ -1115,6 +1118,8 @@ export const StockProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       localStorage.setItem(STORAGE_KEYS.PURCHASE_ORDER_ITEMS, JSON.stringify(orderItems));
       if (currentUser) {
         localStorage.setItem('lagrotte_current_user_v2', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('lagrotte_current_user_v2');
       }
     } catch (e) {
       console.error('Local cache error:', e);
@@ -1148,38 +1153,96 @@ export const StockProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Listen to Supabase Auth state changes & restore session
   useEffect(() => {
-    if (isSupabase && supabase) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setIsSupabaseAuthActive(Boolean(session?.user));
-        if (session?.user) {
-          const found = staff.find(
-            s => s.user_id === session.user.id || s.email?.toLowerCase() === session.user.email?.toLowerCase()
-          );
-          if (found) {
-            setCurrentUser(found);
+    let isMounted = true;
+
+    const checkSession = async () => {
+      try {
+        if (isSupabase && supabase) {
+          const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+          if (sessionErr) {
+            console.warn('Supabase getSession error:', sessionErr);
+          }
+          if (isMounted) {
+            setIsSupabaseAuthActive(Boolean(session?.user));
+            if (session?.user) {
+              const currentStaff = loadFromStorage<Staff[]>(STORAGE_KEYS.STAFF, INITIAL_STAFF);
+              const found = currentStaff.find(
+                s => s.user_id === session.user.id || s.email?.toLowerCase() === session.user.email?.toLowerCase()
+              );
+              if (found) {
+                setCurrentUser(found);
+              } else {
+                const fallbackRole = (session.user.user_metadata?.role as StaffRole) || 'owner';
+                const newStaffUser: Staff = {
+                  id: session.user.id,
+                  user_id: session.user.id,
+                  name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Utilisateur',
+                  role: fallbackRole,
+                  roleTitle: session.user.user_metadata?.role_title || (fallbackRole === 'owner' ? 'Propriétaire' : 'Collaborateur'),
+                  email: session.user.email,
+                  active: true,
+                };
+                setCurrentUser(newStaffUser);
+              }
+            } else {
+              // No Supabase session
+              const savedUser = loadFromStorage<Staff | null>('lagrotte_current_user_v2', null);
+              if (!session) {
+                setCurrentUser(null);
+                localStorage.removeItem('lagrotte_current_user_v2');
+              } else if (savedUser) {
+                setCurrentUser(savedUser);
+              }
+            }
+          }
+        } else {
+          // Local storage check
+          const savedUser = loadFromStorage<Staff | null>('lagrotte_current_user_v2', null);
+          if (isMounted) {
+            setCurrentUser(savedUser && savedUser.id ? savedUser : null);
           }
         }
-      }).catch(err => {
-        console.warn('Supabase getSession error:', err);
-      });
+      } catch (err) {
+        console.warn('Auth session check error:', err);
+        if (isMounted) setCurrentUser(null);
+      } finally {
+        if (isMounted) {
+          setIsAuthChecking(false);
+        }
+      }
+    };
 
+    checkSession();
+
+    if (isSupabase && supabase) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         setIsSupabaseAuthActive(Boolean(session?.user));
         if (session?.user) {
-          const found = staff.find(
-            s => s.user_id === session.user.id || s.email?.toLowerCase() === session.user.email?.toLowerCase()
-          );
-          if (found) {
-            setCurrentUser(found);
-          }
+          setStaff(prevStaff => {
+            const found = prevStaff.find(
+              s => s.user_id === session.user.id || s.email?.toLowerCase() === session.user.email?.toLowerCase()
+            );
+            if (found) {
+              setCurrentUser(found);
+            }
+            return prevStaff;
+          });
+        } else if (_event === 'SIGNED_OUT') {
+          setCurrentUser(null);
+          localStorage.removeItem('lagrotte_current_user_v2');
         }
       });
 
       return () => {
+        isMounted = false;
         subscription.unsubscribe();
       };
+    } else {
+      return () => {
+        isMounted = false;
+      };
     }
-  }, [isSupabase, staff]);
+  }, [isSupabase]);
 
   // RBAC Permission Checkers
   const canManageStock = (role?: StaffRole) => role === 'owner' || role === 'stock_manager';
@@ -1700,6 +1763,29 @@ export const StockProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     return newLog;
+  };
+
+  const deleteWasteLog = async (id: string) => {
+    if (currentUser && !canManageStock(currentUser.role)) {
+      showToast("Accès refusé : Seuls le Propriétaire et le Responsable Stock peuvent supprimer une déclaration de perte.", "error");
+      throw new Error("Action non autorisée.");
+    }
+
+    setWasteLogs(prev => prev.filter(w => w.id !== id));
+    recalculateVarianceMetrics();
+
+    if (isSupabase && supabase) {
+      try {
+        const { error } = await supabase.from('waste_logs').delete().eq('id', id);
+        if (error) throw error;
+        showToast('Déclaration de perte supprimée', 'info');
+      } catch (err) {
+        console.error('Supabase deleteWasteLog error:', err);
+        showToast(`Suppression enregistrée en local (${getErrorMessage(err)})`, 'info');
+      }
+    } else {
+      showToast('Déclaration de perte supprimée', 'info');
+    }
   };
 
   const syncWasteLogsToSupabase = async (): Promise<boolean> => {
@@ -2250,6 +2336,7 @@ export const StockProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         console.error('Supabase signOut error:', err);
       }
     }
+    localStorage.removeItem('lagrotte_current_user_v2');
     setCurrentUser(null);
     showToast('Session déconnectée', 'info');
   };
@@ -2593,6 +2680,7 @@ export const StockProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         recordStockCount,
         recordBatchStockCounts,
         addWasteLog,
+        deleteWasteLog,
         updateStockOnWaste,
         recalculateVarianceMetrics,
         lastVarianceRecalculatedAt,
@@ -2611,6 +2699,7 @@ export const StockProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateStaff,
         deleteStaff,
         signUpStaff,
+        isAuthChecking,
         currentUser,
         setCurrentUser,
         login,

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="grotteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E2A38" />
+      <stop offset="100%" stop-color="#091D27" />
+    </linearGradient>
+    <linearGradient id="terraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DE8C44" />
+      <stop offset="100%" stop-color="#C67D3B" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded Base Badge -->
+  <rect width="100" height="100" rx="24" fill="url(#grotteGrad)" />
+  <rect x="3" y="3" width="94" height="94" rx="21" fill="none" stroke="#C67D3B" stroke-width="2" stroke-opacity="0.35" />
+  
+  <!-- Stylized Grotte Marine / Arch Monogram -->
+  <!-- Outer Arch "G" Shape -->
+  <path d="M68 36 C62 26, 40 25, 32 36 C24 47, 24 62, 33 71 C42 80, 60 79, 68 70 C71 66, 72 61, 72 55 L50 55 L50 47 L79 47 C80 57, 78 68, 72 76 C60 90, 36 90, 24 77 C12 64, 13 42, 25 28 C37 15, 66 15, 76 29 Z" fill="url(#terraGrad)" />
+  
+  <!-- Arch Keystone Dot in Cream -->
+  <circle cx="50" cy="20" r="3.5" fill="#F7F5F0" />
+</svg>

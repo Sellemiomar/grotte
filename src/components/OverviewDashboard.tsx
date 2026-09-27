@@ -24,6 +24,16 @@ import {
 import { useStock } from '../context/StockContext';
 import { formatCurrency, formatQuantity } from '../utils/calculations';
 import { CategoryType, IngredientVarianceReport } from '../types';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+  CartesianGrid,
+} from 'recharts';
 
 interface OverviewDashboardProps {
   onSelectTab: (tab: string) => void;
@@ -177,6 +187,22 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
     return list.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
   }, [deliveries, wasteLogs, stockCounts, posVoids, ingredients]);
 
+  // 8. Horizontal Bar Chart data formatted and sorted descending by variance cost
+  const chartData = useMemo(() => {
+    return [...categorySummaries]
+      .filter(c => c && typeof c.total_variance_cost === 'number')
+      .map(c => ({
+        category: c.category,
+        name: CATEGORY_NAMES[c.category] || c.category,
+        varianceCost: Number(c.total_variance_cost.toFixed(2)),
+        highLossItems: c.high_loss_items || 0,
+        itemsCount: c.items_count || 0,
+        theoreticalCost: Number(c.total_theoretical_cost.toFixed(2)),
+        actualCost: Number(c.total_actual_cost.toFixed(2)),
+      }))
+      .sort((a, b) => b.varianceCost - a.varianceCost);
+  }, [categorySummaries]);
+
   const totalAnomaliesCount = criticalItems.length + lowStockItems.length + (posVoids.length > 5 ? 1 : 0);
 
   return (
@@ -222,6 +248,89 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               <span>Réceptionner BL</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* TOP CHART: Category Variance & Loss Distribution */}
+      <div className="bg-white rounded-2xl border border-sand p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-sand/60">
+          <div>
+            <div className="flex items-center gap-2">
+              <TrendingDown className="w-4 h-4 text-terracotta" />
+              <h2 className="text-sm sm:text-base font-bold text-navy uppercase tracking-wider">
+                Écarts & Coulage par Catégorie Matière (DT)
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Valorisation des disparités de stock entre consommation théorique (recettes) et réelle (inventaires).
+            </p>
+          </div>
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-md bg-alert" />
+              <span className="text-slate-600 text-[11px] font-medium">Anomalie / Alerte</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-md bg-terracotta" />
+              <span className="text-slate-600 text-[11px] font-medium">Standard / Sous contrôle</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full h-64 sm:h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              layout="vertical"
+              margin={{ top: 5, right: 30, left: 15, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E4DCD3" opacity={0.6} />
+              <XAxis
+                type="number"
+                tickFormatter={(val) => `${val} DT`}
+                tick={{ fill: '#0E2A38', fontSize: 11, fontFamily: 'JetBrains Mono' }}
+                stroke="#E4DCD3"
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={130}
+                tick={{ fill: '#0E2A38', fontSize: 11, fontWeight: 600 }}
+                stroke="#E4DCD3"
+              />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const item = payload[0].payload;
+                    return (
+                      <div className="bg-navy text-white text-xs p-3 rounded-xl shadow-xl border border-sand/20 space-y-1">
+                        <div className="font-bold text-sm text-sand">{item.name}</div>
+                        <div className="flex items-center justify-between gap-4 text-[11px] text-slate-300">
+                          <span>Écart constaté :</span>
+                          <strong className="text-white font-mono">{formatCurrency(item.varianceCost)}</strong>
+                        </div>
+                        <div className="flex items-center justify-between gap-4 text-[11px] text-slate-300">
+                          <span>Articles sous surveillance :</span>
+                          <span className={`font-bold ${item.highLossItems > 0 ? 'text-rose-300' : 'text-emerald-300'}`}>
+                            {item.highLossItems} / {item.itemsCount}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="varianceCost" radius={[0, 6, 6, 0]}>
+                {chartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.highLossItems > 0 ? '#BE2525' : '#C67D3B'}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

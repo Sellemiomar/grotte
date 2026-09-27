@@ -139,7 +139,7 @@ export const StockCountSheet: React.FC<StockCountSheetProps> = ({ onClose, isMod
   const sortedCounts = [...stockCounts].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   return (
-    <div className={`space-y-6 ${isModal ? 'p-2 max-h-[85vh] overflow-y-auto' : 'pb-12'}`}>
+    <div className={`space-y-6 ${isModal ? 'p-0.5 sm:p-1 pb-36' : 'pb-36'}`}>
       {/* Top Header Card */}
       <div className="bg-white rounded-2xl border border-sand p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -491,33 +491,33 @@ export const StockCountSheet: React.FC<StockCountSheetProps> = ({ onClose, isMod
                   <div
                     key={ing.id}
                     id={`stock-card-${ing.id}`}
-                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                    className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col justify-between w-full min-w-0 box-border ${
                       isJustScanned 
                         ? 'bg-amber-50/40 border-terracotta ring-2 ring-terracotta/30 shadow-md' 
                         : 'bg-white border-sand shadow-xs hover:border-slate-400'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-navy">
+                    <div className="flex items-start justify-between gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <h4 className="text-sm font-bold text-navy truncate" title={ing.name}>
                             {ing.name}
                           </h4>
                           {isJustScanned && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-terracotta text-white animate-pulse">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-terracotta text-white animate-pulse shrink-0">
                               Scanné
                             </span>
                           )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                          <span className="text-[10px] bg-cream text-slate-700 px-2 py-0.5 rounded-md font-medium border border-sand">
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs">
+                          <span className="text-[10px] bg-cream text-slate-700 px-2 py-0.5 rounded-md font-medium border border-sand shrink-0">
                             {ing.location || 'Réserve'}
                           </span>
-                          <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-mono border border-slate-200 flex items-center gap-1">
+                          <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-mono border border-slate-200 flex items-center gap-1 shrink-0">
                             <BarcodeIcon className="w-2.5 h-2.5 text-slate-400" />
                             {ing.barcode || ing.id}
                           </span>
-                          <span className="text-[10px] text-slate-500 font-mono tabular-nums ml-0.5">
+                          <span className="text-[10px] text-slate-500 font-mono tabular-nums shrink-0">
                             Stock actuel : <strong className="text-navy">{formatQuantity(ing.current_stock, ing.unit)}</strong>
                           </span>
                         </div>
@@ -525,7 +525,7 @@ export const StockCountSheet: React.FC<StockCountSheetProps> = ({ onClose, isMod
 
                       {/* Diff Indicator */}
                       {diff !== 0 && (
-                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full font-mono tabular-nums ${
+                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full font-mono tabular-nums shrink-0 ${
                           diff > 0 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-alert/10 text-alert border border-alert/25'
                         }`}>
                           {diff > 0 ? `+${diff}` : diff} {ing.unit}
@@ -533,53 +533,60 @@ export const StockCountSheet: React.FC<StockCountSheetProps> = ({ onClose, isMod
                       )}
                     </div>
 
-                    {/* Touch-Friendly Quantity Control Steppers (min 44px) */}
-                    <div className="mt-4 pt-3 border-t border-sand flex items-center justify-between gap-2">
-                      {/* Decrement buttons (44x44px minimum for mobile ergonomics) */}
-                      <div className="flex items-center gap-1.5">
+                    {/* Touch-Friendly Quantity Control Steppers (min 44px touch targets, zero overflow) */}
+                    <div className="mt-3.5 pt-3 border-t border-sand flex items-center justify-between gap-1 sm:gap-1.5 w-full min-w-0 box-border">
+                      {/* Decrement buttons (44px height for touch ergonomics) */}
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
+                          type="button"
                           onClick={() => handleAdjust(ing.id, -5)}
-                          className="w-11 h-11 rounded-xl bg-cream hover:bg-linen text-navy border border-sand text-xs font-bold transition-colors active:scale-95 flex items-center justify-center shadow-2xs"
-                          title="-5"
+                          className="w-9 sm:w-10 h-11 rounded-xl bg-cream hover:bg-linen text-navy border border-sand text-xs font-bold transition-colors active:scale-95 flex items-center justify-center shadow-2xs shrink-0 select-none"
+                          title="Diminuer de 5"
                         >
                           -5
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleAdjust(ing.id, -1)}
-                          className="w-11 h-11 rounded-xl bg-cream hover:bg-linen text-navy border border-sand flex items-center justify-center transition-colors font-bold active:scale-95 shadow-2xs"
-                          title="-1"
+                          className="w-9 sm:w-10 h-11 rounded-xl bg-cream hover:bg-linen text-navy border border-sand flex items-center justify-center transition-colors font-bold active:scale-95 shadow-2xs shrink-0 select-none"
+                          title="Diminuer de 1"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
                       </div>
 
-                      {/* Direct Value Input */}
-                      <div className="flex items-center justify-center gap-1.5 flex-1">
+                      {/* Flexible Center Input & Unit */}
+                      <div className="flex items-center justify-center gap-1 flex-1 min-w-0 px-0.5 sm:px-1">
                         <input
                           type="number"
                           step={ing.unit === 'unit/piece' ? '1' : '0.1'}
                           value={currentCount}
                           onChange={e => handleDirectInput(ing.id, e.target.value)}
-                          className="w-24 text-center font-bold font-mono tabular-nums text-base bg-cream border border-sand rounded-xl py-2 text-navy focus:bg-white focus:ring-2 focus:ring-navy focus:outline-none"
+                          className="w-full min-w-[44px] max-w-[72px] sm:max-w-[88px] text-center font-bold font-mono tabular-nums text-sm sm:text-base bg-cream border border-sand rounded-xl py-2 px-1 text-navy focus:bg-white focus:ring-2 focus:ring-navy focus:outline-none"
                         />
-                        <span className="text-xs font-semibold text-slate-500 w-8">
+                        <span 
+                          className="text-[10px] sm:text-xs font-semibold text-slate-500 shrink-0 select-none max-w-[48px] sm:max-w-[64px] truncate"
+                          title={ing.unit}
+                        >
                           {ing.unit}
                         </span>
                       </div>
 
-                      {/* Increment buttons (44x44px minimum for mobile ergonomics) */}
-                      <div className="flex items-center gap-1.5">
+                      {/* Increment buttons (44px height for touch ergonomics) */}
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
+                          type="button"
                           onClick={() => handleAdjust(ing.id, 1)}
-                          className="w-11 h-11 rounded-xl bg-cream hover:bg-linen text-navy border border-sand flex items-center justify-center transition-colors font-bold active:scale-95 shadow-2xs"
-                          title="+1"
+                          className="w-9 sm:w-10 h-11 rounded-xl bg-cream hover:bg-linen text-navy border border-sand flex items-center justify-center transition-colors font-bold active:scale-95 shadow-2xs shrink-0 select-none"
+                          title="Augmenter de 1"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleAdjust(ing.id, 5)}
-                          className="w-11 h-11 rounded-xl bg-cream hover:bg-linen text-navy border border-sand text-xs font-bold transition-colors active:scale-95 flex items-center justify-center shadow-2xs"
-                          title="+5"
+                          className="w-9 sm:w-10 h-11 rounded-xl bg-cream hover:bg-linen text-navy border border-sand text-xs font-bold transition-colors active:scale-95 flex items-center justify-center shadow-2xs shrink-0 select-none"
+                          title="Augmenter de 5"
                         >
                           +5
                         </button>
@@ -591,8 +598,11 @@ export const StockCountSheet: React.FC<StockCountSheetProps> = ({ onClose, isMod
             </div>
           )}
 
+          {/* Bottom spacing before sticky footer */}
+          <div className="h-4 sm:h-6" />
+
           {/* Sticky Bottom Validation Bar */}
-          <div className="sticky bottom-4 z-20 bg-navy text-white p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 border border-white/10">
+          <div className="sticky bottom-2 sm:bottom-4 z-20 bg-navy text-white p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 border border-white/10">
             <div>
               <p className="text-xs text-sand">
                 Relevé par <strong className="text-white">{countedBy}</strong> ({shift === 'morning' ? 'Matin / Préparation' : 'Soir / Clôture'}) au <strong className="text-white">{countDate}</strong>
