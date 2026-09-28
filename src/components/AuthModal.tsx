@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { 
   Lock, 
   Mail, 
@@ -114,8 +115,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-cream rounded-2xl max-w-lg w-full shadow-2xl border border-sand overflow-hidden text-navy my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
+        className="relative bg-cream rounded-2xl max-w-lg w-full shadow-2xl border border-sand overflow-hidden text-navy my-8 z-10"
+      >
         {/* Header with Grotte Marine styling */}
         <div className="bg-navy p-5 text-white flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-3">
@@ -448,7 +463,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
             </form>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

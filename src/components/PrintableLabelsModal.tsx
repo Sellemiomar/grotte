@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import QRCode from 'qrcode';
 import { 
   Printer, 
@@ -87,17 +88,30 @@ export const PrintableLabelsModal: React.FC<PrintableLabelsModalProps> = ({
     };
   }, [isOpen, selectedLocation, filteredIngredients.length]);
 
-  if (!isOpen) return null;
-
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto">
-      <div className="relative bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-sand overflow-hidden flex flex-col my-auto max-h-[92vh]">
-        
-        {/* Header - Screen only */}
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="fixed inset-0 bg-black/75 backdrop-blur-xs"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="relative bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-sand overflow-hidden flex flex-col my-auto max-h-[92vh] z-10"
+          >
+            {/* Header - Screen only */}
         <div className="p-5 bg-navy text-white flex items-center justify-between print:hidden">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-terracotta text-white shadow-xs">
@@ -254,7 +268,9 @@ export const PrintableLabelsModal: React.FC<PrintableLabelsModalProps> = ({
           </button>
         </div>
 
-      </div>
+      </motion.div>
     </div>
+      )}
+    </AnimatePresence>
   );
 };

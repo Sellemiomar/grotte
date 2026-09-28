@@ -1,4 +1,5 @@
 import React, { useState, useMemo, Suspense, lazy } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { 
   TrendingDown, 
   AlertTriangle, 
@@ -896,31 +897,33 @@ export const VarianceDashboard: React.FC = () => {
       </div>
 
       {/* Investigation Modal */}
-      {investigatingId && (
-        <Suspense
-          fallback={
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-              <div className="bg-cream rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-sand flex flex-col items-center text-center">
-                <div className="relative flex items-center justify-center mb-4">
-                  <div className="w-10 h-10 rounded-full border-2 border-sand border-t-terracotta animate-spin" />
-                  <div className="absolute w-2 h-2 rounded-full bg-navy" />
+      <AnimatePresence>
+        {investigatingId && (
+          <Suspense
+            fallback={
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+                <div className="bg-cream rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-sand flex flex-col items-center text-center">
+                  <div className="relative flex items-center justify-center mb-4">
+                    <div className="w-10 h-10 rounded-full border-2 border-sand border-t-terracotta animate-spin" />
+                    <div className="absolute w-2 h-2 rounded-full bg-navy" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-widest text-terracotta">
+                    La Grotte • IA Audit
+                  </span>
+                  <p className="text-xs font-medium text-navy/80 mt-1">
+                    Chargement de l'analyse...
+                  </p>
                 </div>
-                <span className="text-xs font-bold uppercase tracking-widest text-terracotta">
-                  La Grotte • IA Audit
-                </span>
-                <p className="text-xs font-medium text-navy/80 mt-1">
-                  Chargement de l'analyse...
-                </p>
               </div>
-            </div>
-          }
-        >
-          <LossInvestigationModal
-            ingredientId={investigatingId}
-            onClose={() => setInvestigatingId(null)}
-          />
-        </Suspense>
-      )}
+            }
+          >
+            <LossInvestigationModal
+              ingredientId={investigatingId}
+              onClose={() => setInvestigatingId(null)}
+            />
+          </Suspense>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { 
   ShieldAlert, 
   X, 
@@ -120,8 +121,22 @@ export const LossInvestigationModal: React.FC<LossInvestigationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-sand overflow-hidden my-auto max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-2xs"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
+        className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-sand overflow-hidden my-auto max-h-[90vh] flex flex-col z-10"
+      >
         {/* Modal Header */}
         <div className="bg-navy text-white p-5 flex items-center justify-between border-b border-sand/20">
           <div className="flex items-center gap-3">
@@ -445,7 +460,7 @@ export const LossInvestigationModal: React.FC<LossInvestigationModalProps> = ({
             Fermer l'enquête
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { StockProvider, useStock } from './context/StockContext';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -310,34 +311,44 @@ function AppContent() {
                 </div>
               </div>
             ) : (
-              <Suspense fallback={<TabLoadingFallback />}>
-                {activeTab === 'overview' && (
-                  <OverviewDashboard
-                    onSelectTab={setActiveTab}
-                    onOpenInvestigation={(id) => setInvestigatingIngredientId(id)}
-                    onOpenFastCount={() => setIsFastCountModalOpen(true)}
-                    onOpenWasteLog={() => setIsWasteLogModalOpen(true)}
-                    onOpenNewDelivery={() => setIsNewDeliveryModalOpen(true)}
-                  />
-                )}
-                {activeTab === 'variance' && <VarianceDashboard />}
-                {activeTab === 'counts' && <StockCountSheet />}
-                {activeTab === 'ingredients' && <IngredientsManager />}
-                {activeTab === 'deliveries' && <DeliveriesManager />}
-                {activeTab === 'recipes' && <RecipeManager />}
-                {activeTab === 'sales' && (
-                  <SalesManager onOpenImportModal={() => setIsSalesImportModalOpen(true)} />
-                )}
-                {activeTab === 'waste' && (
-                  <WasteRegisterView onOpenNewWaste={() => setIsWasteLogModalOpen(true)} />
-                )}
-                {activeTab === 'reports' && <ReportsView />}
-                {activeTab === 'access_logs' && <AccessLogManager />}
-                {activeTab === 'pos_voids' && <PosVoidsManager />}
-                {activeTab === 'staff' && <StaffManager />}
-                {activeTab === 'purchase_orders' && <PurchaseOrdersManager />}
-                {activeTab === 'settings' && <SettingsView />}
-              </Suspense>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                >
+                  <Suspense fallback={<TabLoadingFallback />}>
+                    {activeTab === 'overview' && (
+                      <OverviewDashboard
+                        onSelectTab={setActiveTab}
+                        onOpenInvestigation={(id) => setInvestigatingIngredientId(id)}
+                        onOpenFastCount={() => setIsFastCountModalOpen(true)}
+                        onOpenWasteLog={() => setIsWasteLogModalOpen(true)}
+                        onOpenNewDelivery={() => setIsNewDeliveryModalOpen(true)}
+                      />
+                    )}
+                    {activeTab === 'variance' && <VarianceDashboard />}
+                    {activeTab === 'counts' && <StockCountSheet />}
+                    {activeTab === 'ingredients' && <IngredientsManager />}
+                    {activeTab === 'deliveries' && <DeliveriesManager />}
+                    {activeTab === 'recipes' && <RecipeManager />}
+                    {activeTab === 'sales' && (
+                      <SalesManager onOpenImportModal={() => setIsSalesImportModalOpen(true)} />
+                    )}
+                    {activeTab === 'waste' && (
+                      <WasteRegisterView onOpenNewWaste={() => setIsWasteLogModalOpen(true)} />
+                    )}
+                    {activeTab === 'reports' && <ReportsView />}
+                    {activeTab === 'access_logs' && <AccessLogManager />}
+                    {activeTab === 'pos_voids' && <PosVoidsManager />}
+                    {activeTab === 'staff' && <StaffManager />}
+                    {activeTab === 'purchase_orders' && <PurchaseOrdersManager />}
+                    {activeTab === 'settings' && <SettingsView />}
+                  </Suspense>
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
         </main>
@@ -359,99 +370,139 @@ function AppContent() {
       </div>
 
       {/* Fast Count Modal */}
-      {isFastCountModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4">
-          <div className="bg-cream rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-sand flex flex-col">
-            <div className="p-4 bg-navy text-white flex items-center justify-between">
-              <div>
-                <span className="font-bold text-xs uppercase tracking-wider text-terracotta block">
-                  Comptage Terrain
-                </span>
-                <h3 className="text-sm font-bold text-white">
-                  Saisie Rapide — Inventaire Physique par Shift
-                </h3>
+      <AnimatePresence>
+        {isFastCountModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+              onClick={() => setIsFastCountModalOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="relative bg-cream rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-sand flex flex-col z-10 my-auto"
+            >
+              <div className="p-4 bg-navy text-white flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-xs uppercase tracking-wider text-terracotta block">
+                    Comptage Terrain
+                  </span>
+                  <h3 className="text-sm font-bold text-white">
+                    Saisie Rapide — Inventaire Physique par Shift
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsFastCountModalOpen(false)}
+                  className="p-1.5 text-slate-300 hover:text-white rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setIsFastCountModalOpen(false)}
-                className="p-1.5 text-slate-300 hover:text-white rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4 overflow-y-auto flex-1">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <StockCountSheet
-                  isModal={true}
-                  onClose={() => setIsFastCountModalOpen(false)}
-                />
-              </Suspense>
-            </div>
+              <div className="p-4 overflow-y-auto flex-1">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <StockCountSheet
+                    isModal={true}
+                    onClose={() => setIsFastCountModalOpen(false)}
+                  />
+                </Suspense>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* POS Sales Import Modal */}
-      {isSalesImportModalOpen && (
-        <Suspense fallback={<ModalLoadingFallback label="Chargement import caisse..." />}>
-          <SalesImportModal onClose={() => setIsSalesImportModalOpen(false)} />
-        </Suspense>
-      )}
+      <AnimatePresence>
+        {isSalesImportModalOpen && (
+          <Suspense fallback={<ModalLoadingFallback label="Chargement import caisse..." />}>
+            <SalesImportModal onClose={() => setIsSalesImportModalOpen(false)} />
+          </Suspense>
+        )}
+      </AnimatePresence>
 
       {/* Auth / Login Modal */}
-      {isAuthModalOpen && (
-        <Suspense fallback={<ModalLoadingFallback label="Connexion sécurisée..." />}>
-          <AuthModal onClose={() => setIsAuthModalOpen(false)} />
-        </Suspense>
-      )}
+      <AnimatePresence>
+        {isAuthModalOpen && (
+          <Suspense fallback={<ModalLoadingFallback label="Connexion sécurisée..." />}>
+            <AuthModal onClose={() => setIsAuthModalOpen(false)} />
+          </Suspense>
+        )}
+      </AnimatePresence>
 
       {/* New Delivery Modal */}
-      {isNewDeliveryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-cream rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-sand flex flex-col">
-            <div className="p-4 bg-navy text-white flex items-center justify-between">
-              <div>
-                <span className="font-bold text-xs uppercase tracking-wider text-terracotta block">
-                  Stock Entrant
-                </span>
-                <h3 className="text-sm font-bold text-white">
-                  Réception Marchandise Fournisseur (Bon de Livraison)
-                </h3>
+      <AnimatePresence>
+        {isNewDeliveryModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+              onClick={() => setIsNewDeliveryModalOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="relative bg-cream rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-sand flex flex-col z-10 my-auto"
+            >
+              <div className="p-4 bg-navy text-white flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-xs uppercase tracking-wider text-terracotta block">
+                    Stock Entrant
+                  </span>
+                  <h3 className="text-sm font-bold text-white">
+                    Réception Marchandise Fournisseur (Bon de Livraison)
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsNewDeliveryModalOpen(false)}
+                  className="p-1.5 text-slate-300 hover:text-white rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setIsNewDeliveryModalOpen(false)}
-                className="p-1.5 text-slate-300 hover:text-white rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4 overflow-y-auto flex-1">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <DeliveriesManager
-                  isModal={true}
-                  onClose={() => setIsNewDeliveryModalOpen(false)}
-                />
-              </Suspense>
-            </div>
+              <div className="p-4 overflow-y-auto flex-1">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <DeliveriesManager
+                    isModal={true}
+                    onClose={() => setIsNewDeliveryModalOpen(false)}
+                  />
+                </Suspense>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Waste Log Modal */}
-      {isWasteLogModalOpen && (
-        <Suspense fallback={<ModalLoadingFallback label="Ouverture registre des pertes..." />}>
-          <WasteLogModal onClose={() => setIsWasteLogModalOpen(false)} />
-        </Suspense>
-      )}
+      <AnimatePresence>
+        {isWasteLogModalOpen && (
+          <Suspense fallback={<ModalLoadingFallback label="Ouverture registre des pertes..." />}>
+            <WasteLogModal onClose={() => setIsWasteLogModalOpen(false)} />
+          </Suspense>
+        )}
+      </AnimatePresence>
 
       {/* Loss Investigation Modal */}
-      {investigatingIngredientId && (
-        <Suspense fallback={<ModalLoadingFallback label="Ouverture de l'enquête anti-coulage..." />}>
-          <LossInvestigationModal
-            ingredientId={investigatingIngredientId}
-            onClose={() => setInvestigatingIngredientId(null)}
-          />
-        </Suspense>
-      )}
+      <AnimatePresence>
+        {investigatingIngredientId && (
+          <Suspense fallback={<ModalLoadingFallback label="Ouverture de l'enquête anti-coulage..." />}>
+            <LossInvestigationModal
+              ingredientId={investigatingIngredientId}
+              onClose={() => setInvestigatingIngredientId(null)}
+            />
+          </Suspense>
+        )}
+      </AnimatePresence>
 
       {/* Floating Toast Notification */}
       {toastMessage && (

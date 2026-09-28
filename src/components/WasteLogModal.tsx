@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { 
   Trash2, 
   X, 
@@ -245,8 +246,22 @@ export const WasteLogModal: React.FC<WasteLogModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-xs">
-      <div className="bg-cream rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-sand flex flex-col animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
+        className="relative bg-cream rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-sand flex flex-col z-10"
+      >
         
         {/* Header */}
         <div className="p-4 bg-navy text-white flex items-center justify-between">
@@ -740,7 +755,7 @@ export const WasteLogModal: React.FC<WasteLogModalProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
